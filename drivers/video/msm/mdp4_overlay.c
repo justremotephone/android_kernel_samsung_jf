@@ -3823,11 +3823,13 @@ int mdp4_overlay_unset(struct fb_info *info, int ndx)
 		return -EINTR;
 
 	pipe = mdp4_overlay_ndx2pipe(ndx);
-	xlog(__func__, pipe->pipe_ndx, 0, 0, 0, 0);
+
 	if (pipe == NULL) {
 		mutex_unlock(&mfd->dma->ov_mutex);
 		return -ENODEV;
 	}
+
+	xlog(__func__, pipe->pipe_ndx, 0, 0, 0, 0);
 
 	if (pipe->pipe_type == OVERLAY_TYPE_BF) {
 		mdp4_overlay_borderfill_stage_down(pipe);
