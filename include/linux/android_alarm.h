@@ -46,7 +46,7 @@ enum android_alarm_type {
  */
 
 /**
- * struct alarm - the basic alarm structure
+ * struct android_alarm - the basic alarm structure
  * @node:	red black tree node for time ordered insertion
  * @type:	alarm type. rtc/elapsed-realtime/systemtime, wakeup/non-wakeup.
  * @softexpires: the absolute earliest expiry time of the alarm.
@@ -57,27 +57,27 @@ enum android_alarm_type {
  *
  */
 
-struct alarm {
+struct android_alarm {
 	struct rb_node 		node;
 	enum android_alarm_type type;
 	ktime_t			softexpires;
 	ktime_t			expires;
-	void			(*function)(struct alarm *);
+	void			(*function)(struct android_alarm *);
 };
 
-void alarm_init(struct alarm *alarm,
-	enum android_alarm_type type, void (*function)(struct alarm *));
-void alarm_start_range(struct alarm *alarm, ktime_t start, ktime_t end);
-int alarm_try_to_cancel(struct alarm *alarm);
-int alarm_cancel(struct alarm *alarm);
-ktime_t alarm_get_elapsed_realtime(void);
+void android_alarm_init(struct android_alarm *alarm,
+	enum android_alarm_type type, void (*function)(struct android_alarm *));
+void android_alarm_start_range(struct android_alarm *alarm, ktime_t start, ktime_t end);
+int android_alarm_try_to_cancel(struct android_alarm *alarm);
+int android_alarm_cancel(struct android_alarm *alarm);
+ktime_t android_alarm_get_elapsed_realtime(void);
 
 /* set rtc while preserving elapsed realtime */
-int alarm_set_rtc(const struct timespec ts);
+int android_alarm_set_rtc(const struct timespec ts);
 #ifdef CONFIG_RTC_AUTO_PWRON
-int alarm_set_alarm(char *alarm_data);
+int android_alarm_set_alarm(char *alarm_data);
 #endif /* CONFIG_AUTO_PWRON */
-void alarm_update_timedelta(struct timespec tv, struct timespec ts);
+void android_alarm_update_timedelta(struct timespec tv, struct timespec ts);
 
 #endif
 

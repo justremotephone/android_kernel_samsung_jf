@@ -136,7 +136,7 @@ static int sec_bat_set_charge(
 	psy_do_property("sec-charger", set,
 		POWER_SUPPLY_PROP_STATUS, val);
 
-	current_time = alarm_get_elapsed_realtime();
+	current_time = android_alarm_get_elapsed_realtime();
 	ts = ktime_to_timespec(current_time);
 
 	if (enable) {
@@ -940,11 +940,11 @@ static void  sec_bat_event_program_alarm(
 	ktime_t next;
 
 	next = ktime_add(battery->last_event_time, low_interval);
-	alarm_start_range(&battery->event_termination_alarm,
+	android_alarm_start_range(&battery->event_termination_alarm,
 		next, ktime_add(next, slack));
 }
 
-static void sec_bat_event_expired_timer_func(struct alarm *alarm)
+static void sec_bat_event_expired_timer_func(struct android_alarm *alarm)
 {
 	struct sec_battery_info *battery =
 		container_of(alarm, struct sec_battery_info,
@@ -971,7 +971,7 @@ static void sec_bat_event_set(
 		return;
 	}
 
-	alarm_cancel(&battery->event_termination_alarm);
+	android_alarm_cancel(&battery->event_termination_alarm);
 	battery->event &= (~battery->event_wait);
 
 	if (enable) {
@@ -987,7 +987,7 @@ static void sec_bat_event_set(
 			return;	/* nothing to clear */
 		}
 		battery->event_wait = event;
-		battery->last_event_time = alarm_get_elapsed_realtime();
+		battery->last_event_time = android_alarm_get_elapsed_realtime();
 
 		sec_bat_event_program_alarm(battery,
 			battery->pdata->event_waiting_time);
@@ -1119,7 +1119,7 @@ static bool sec_bat_time_management(
 	ktime_t	current_time;
 	struct timespec ts;
 
-	current_time = alarm_get_elapsed_realtime();
+	current_time = android_alarm_get_elapsed_realtime();
 	ts = ktime_to_timespec(current_time);
 
 	if (battery->charging_start_time == 0) {
@@ -1620,11 +1620,11 @@ static void sec_bat_program_alarm(
 	ktime_t next;
 
 	next = ktime_add(battery->last_poll_time, low_interval);
-	alarm_start_range(&battery->polling_alarm,
+	android_alarm_start_range(&battery->polling_alarm,
 		next, ktime_add(next, slack));
 }
 
-static void sec_bat_alarm(struct alarm *alarm)
+static void sec_bat_alarm(struct android_alarm *alarm)
 {
 	struct sec_battery_info *battery = container_of(alarm,
 				struct sec_battery_info, polling_alarm);
@@ -1774,7 +1774,7 @@ static void sec_bat_set_polling(
 				polling_time_temp * HZ);
 		break;
 	case SEC_BATTERY_MONITOR_ALARM:
-		battery->last_poll_time = alarm_get_elapsed_realtime();
+		battery->last_poll_time = android_alarm_get_elapsed_realtime();
 		if (battery->pdata->monitor_initial_count) {
 			battery->pdata->monitor_initial_count--;
 			sec_bat_program_alarm(battery, 1);
@@ -1801,7 +1801,7 @@ static void sec_bat_monitor_work(
 
 	dev_dbg(battery->dev, "%s: Start\n", __func__);
 
-	c_ts = ktime_to_timespec(alarm_get_elapsed_realtime());
+	c_ts = ktime_to_timespec(android_alarm_get_elapsed_realtime());
 
 	/* monitor once after wakeup */
 	if (battery->polling_in_sleep) {
@@ -3027,7 +3027,7 @@ static int __devinit sec_battery_probe(struct platform_device *pdev)
 #endif
 	battery->ps_enable= 0;
 
-	alarm_init(&battery->event_termination_alarm,
+	android_alarm_init(&battery->event_termination_alarm,
 			ANDROID_ALARM_ELAPSED_REALTIME_WAKEUP,
 			sec_bat_event_expired_timer_func);
 
@@ -3094,8 +3094,8 @@ static int __devinit sec_battery_probe(struct platform_device *pdev)
 			sec_bat_polling_work);
 		break;
 	case SEC_BATTERY_MONITOR_ALARM:
-		battery->last_poll_time = alarm_get_elapsed_realtime();
-		alarm_init(&battery->polling_alarm,
+		battery->last_poll_time = android_alarm_get_elapsed_realtime();
+		android_alarm_init(&battery->polling_alarm,
 			ANDROID_ALARM_ELAPSED_REALTIME_WAKEUP,
 			sec_bat_alarm);
 		break;
@@ -3224,13 +3224,13 @@ static int __devexit sec_battery_remove(struct platform_device *pdev)
 		cancel_delayed_work(&battery->polling_work);
 		break;
 	case SEC_BATTERY_MONITOR_ALARM:
-		alarm_cancel(&battery->polling_alarm);
+		android_alarm_cancel(&battery->polling_alarm);
 		break;
 	default:
 		break;
 	}
 
-	alarm_cancel(&battery->event_termination_alarm);
+	android_alarm_cancel(&battery->event_termination_alarm);
 	flush_workqueue(battery->monitor_wqueue);
 	destroy_workqueue(battery->monitor_wqueue);
 	wake_lock_destroy(&battery->monitor_wake_lock);
@@ -3264,7 +3264,7 @@ static int sec_battery_prepare(struct device *dev)
 		cancel_delayed_work(&battery->polling_work);
 		break;
 	case SEC_BATTERY_MONITOR_ALARM:
-		alarm_cancel(&battery->polling_alarm);
+		android_alarm_cancel(&battery->polling_alarm);
 		break;
 	default:
 		break;
@@ -3307,7 +3307,7 @@ static void sec_battery_complete(struct device *dev)
 
 	/* cancel current alarm and reset after monitor work */
 	if (battery->pdata->polling_type == SEC_BATTERY_MONITOR_ALARM)
-		alarm_cancel(&battery->polling_alarm);
+		android_alarm_cancel(&battery->polling_alarm);
 
 	wake_lock(&battery->monitor_wake_lock);
 	queue_work(battery->monitor_wqueue,
