@@ -226,6 +226,10 @@ enum {
 
 extern int pm_test_level;
 
+#ifndef CONFIG_EARLYSUSPEND
+	#undef CONFIG_SUSPEND_FREEZER
+#endif
+
 #ifdef CONFIG_SUSPEND_FREEZER
 static inline int suspend_freeze_processes(void)
 {

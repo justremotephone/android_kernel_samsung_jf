@@ -684,7 +684,9 @@ static int __init wakelocks_init(void)
 			"deleted_wake_locks");
 #endif
 	wake_lock_init(&main_wake_lock, WAKE_LOCK_SUSPEND, "main");
+#ifdef CONFIG_EARLYSUSPEND
 	wake_lock(&main_wake_lock);
+#endif
 	wake_lock_init(&unknown_wakeup, WAKE_LOCK_SUSPEND, "unknown_wakeups");
 	wake_lock_init(&suspend_backoff_lock, WAKE_LOCK_SUSPEND,
 		       "suspend_backoff");

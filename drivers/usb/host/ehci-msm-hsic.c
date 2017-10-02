@@ -651,8 +651,19 @@ static int msm_hsic_suspend(struct msm_hsic_hcd *mehci)
 	if (test_bit(HCD_FLAG_WAKEUP_PENDING, &hcd->flags) ||
 	    readl_relaxed(USB_PORTSC) & PORT_RESUME) {
 		dev_dbg(mehci->dev, "wakeup pending, aborting suspend\n");
+#ifndef CONFIG_EARLYSUSPEND
+	    	if (test_bit(HCD_FLAG_WAKEUP_PENDING, &hcd->flags))
+	 	{
+			dev_err(mehci->dev, "test_bit(HCD_FLAG_WAKEUP_PENDING, &hcd->flags) -> ignored!!!!!!!!");  //this is a dirty fix a bug in suspend/resume without CONFIG_EARLYSUSPEND
+		}
+		else
+		{
+#endif
 		enable_irq(hcd->irq);
 		return -EBUSY;
+#ifndef CONFIG_EARLYSUSPEND
+		}
+#endif
 	}
 
 	/*
